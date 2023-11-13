@@ -1,13 +1,17 @@
 import cv2
 import mediapipe as mp
 import tkinter as tk
+import time
 from tkinter import ttk
+
+import pyautogui
 from PIL import Image, ImageTk
 
 # Initialize MediaPipe solutions for hand tracking
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
+last_volume_up_time = 0
 
 
 def gesture_recognized(hand_landmarks):
@@ -43,8 +47,11 @@ def gesture_recognized(hand_landmarks):
     return is_index_up and are_other_fingers_down
 
 def perform_action():
-    # [Your action performing logic here...]
-    pass
+    global last_volume_up_time
+    current_time = time.time()
+    if current_time - last_volume_up_time >= 1:
+        pyautogui.press('volumeup')
+        last_volume_up_time = current_time
 
 
 class GestureLinkApp:
