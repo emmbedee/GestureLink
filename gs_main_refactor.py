@@ -84,12 +84,30 @@ class GestureLinkApp:
         self.update()
 
     def create_gestures_ui(self):
+        label_font = ('Arial', 12, 'bold')
+        dropdown_font = ('Arial', 12)
+        bg_color = '#f0f0f0'  # Light grey background for a modern look
+        text_color = '#333'   # Dark grey text for better readability
+
+        self.gesture_frame = tk.Frame(self.main_frame, bg=bg_color)
+        self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True, padx=10, pady=10)
+
         for row, (gesture, action) in enumerate(gesture_action_map.items()):
-            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0, padx=5, pady=5, sticky='ew')
-            tk.Label(self.gesture_frame, text='→', bg='lightgrey', font=('Arial', 16)).grid(row=row, column=1, padx=5, pady=5)
-            dropdown = tk.OptionMenu(self.gesture_frame, tk.StringVar(self.gesture_frame, action), *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
-            dropdown.config(width=20, anchor='w')
-            dropdown.grid(row=row, column=2, padx=5, pady=5, sticky='ew')
+            # Label for the gesture
+            gesture_label = tk.Label(self.gesture_frame, text=gesture, bg='white', fg=text_color, font=label_font, width=20, relief='solid')
+            gesture_label.grid(row=row, column=0, padx=10, pady=5, sticky='ew')
+
+            # Arrow label
+            arrow_label = tk.Label(self.gesture_frame, text='→', bg=bg_color, fg=text_color, font=label_font)
+            arrow_label.grid(row=row, column=1, padx=5, pady=5)
+
+            # Drop-down for the action
+            dropdown_var = tk.StringVar(self.gesture_frame)
+            dropdown_var.set(action)  # default value
+            dropdown = tk.OptionMenu(self.gesture_frame, dropdown_var, *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
+            dropdown.config(font=dropdown_font, anchor='w')
+            dropdown.grid(row=row, column=2, padx=10, pady=5, sticky='ew')
+            dropdown["menu"].config(bg='white', fg=text_color)  # Styling the dropdown options
 
     def update_gesture_action(self, gesture, new_action):
         gesture_action_map[gesture] = new_action
