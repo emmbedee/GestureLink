@@ -76,6 +76,10 @@ class GestureLinkApp:
         self.btn_toggle_webcam = tk.Button(self.main_frame, text="Start", width=10, command=self.toggle_webcam, bg='green')
         self.btn_toggle_webcam.pack(side=tk.TOP, pady=10)
 
+        # Initialize gesture_action_map with None for each gesture
+        self.gesture_action_map = {gesture: None for gesture in ["closed_fist", "index_pinky_up", "index_pinky_thumb_up", "L_shape", "middle_ring_up", "index_middle_up"]}
+        self.action_taken = {option: False for option in options}  # Track if an action is taken
+
         self.gesture_frame = tk.Frame(self.main_frame, bg='lightgrey')
         self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True)
         self.create_gestures_ui()
@@ -86,31 +90,49 @@ class GestureLinkApp:
     def create_gestures_ui(self):
         label_font = ('Arial', 12, 'bold')
         dropdown_font = ('Arial', 12)
-        bg_color = '#f0f0f0'  # Light grey background for a modern look
-        text_color = '#333'   # Dark grey text for better readability
+        bg_color = '#f0f0f0'
+        text_color = '#333'
 
         self.gesture_frame = tk.Frame(self.main_frame, bg=bg_color)
         self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True, padx=10, pady=10)
 
-        for row, (gesture, action) in enumerate(gesture_action_map.items()):
-            # Label for the gesture
+        for row, (gesture, action) in enumerate(self.gesture_action_map.items()):
             gesture_label = tk.Label(self.gesture_frame, text=gesture, bg='white', fg=text_color, font=label_font, width=20, relief='solid')
             gesture_label.grid(row=row, column=0, padx=10, pady=5, sticky='ew')
 
-            # Arrow label
             arrow_label = tk.Label(self.gesture_frame, text='→', bg=bg_color, fg=text_color, font=label_font)
             arrow_label.grid(row=row, column=1, padx=5, pady=5)
 
-            # Drop-down for the action
             dropdown_var = tk.StringVar(self.gesture_frame)
             dropdown_var.set(action)  # default value
-            dropdown = tk.OptionMenu(self.gesture_frame, dropdown_var, *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
+            dropdown = tk.OptionMenu(self.gesture_frame, dropdown_var, "None", *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
             dropdown.config(font=dropdown_font, anchor='w')
             dropdown.grid(row=row, column=2, padx=10, pady=5, sticky='ew')
-            dropdown["menu"].config(bg='white', fg=text_color)  # Styling the dropdown options
+
+            menu = dropdown["menu"]
+            menu.delete(0, 'end')
+            menu.add_command(label="None", command=tk._setit(dropdown_var, "None", lambda value="None", g=gesture: self.update_gesture_action(g, value)))
+            for option in options:
+                menu.add_command(label=option, command=tk._setit(dropdown_var, option, lambda value=option, g=gesture: self.update_gesture_action(g, value)))
+                if self.action_taken[option] and self.gesture_action_map[gesture] != option:
+                    menu.entryconfig(option, state='disabled')
 
     def update_gesture_action(self, gesture, new_action):
-        gesture_action_map[gesture] = new_action
+        if new_action == "None":
+            new_action = None
+
+        if self.gesture_action_map[gesture]:
+            self.action_taken[self.gesture_action_map[gesture]] = False
+
+        self.gesture_action_map[gesture] = new_action
+        if new_action:
+            self.action_taken[new_action] = True
+
+        self.gesture_frame.pack_forget()
+        self.gesture_frame.destroy()
+        self.gesture_frame = tk.Frame(self.main_frame, bg='lightgrey')
+        self.create_gestures_ui()
+
 
     def toggle_webcam(self):
         self.running = not self.running
