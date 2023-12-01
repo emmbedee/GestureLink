@@ -138,9 +138,19 @@ class GestureLinkApp(QMainWindow):
             combobox.currentIndexChanged.connect(lambda index, key=gesture_key, box=combobox: self.update_gesture_action_map(key, box))
             self.gesture_layout.addWidget(combobox, i, 1)
             self.comboboxes[gesture_key] = combobox
+        self.update_comboboxes()
 
     def update_gesture_action_map(self, gesture, combobox):
         gesture_action_map[gesture] = combobox.currentText() if combobox.currentText() != "None" else None
+        self.update_comboboxes()
+
+    def update_comboboxes(self):
+        selected_actions = set(gesture_action_map.values())
+        for combobox in self.comboboxes.values():
+            current_action = combobox.currentText()
+            for i in range(combobox.count()):
+                action = combobox.itemText(i)
+                combobox.model().item(i).setEnabled(action == "None" or action not in selected_actions or action == current_action)
     def toggle_webcam(self):
         if self.timer.isActive():
             self.timer.stop()
