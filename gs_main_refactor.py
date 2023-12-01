@@ -153,15 +153,24 @@ class GestureLinkApp(QMainWindow):
         ret, frame = self.vid.read()
         if ret:
             frame = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
-            # Hand tracking and gesture recognition logic
             results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
                     gesture = gesture_recognized(hand_landmarks)
+                    action = gesture_action_map.get(gesture, "No action")
                     perform_action(gesture)
                     mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-            image = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
-            self.webcam_label.setPixmap(QPixmap.fromImage(image))
+
+                    # Overlay text for gesture and action
+                    cv2.putText(frame, f"Gesture Recognized: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                                (255, 255, 255), 2)
+                    cv2.putText(frame, f"Action: {action}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+
+            # Convert the frame back to QImage and set it to the label
+            h, w, ch = frame.shape
+            bytes_per_line = ch * w
+            convert_to_Qt_format = QImage(frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
+            self.webcam_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
