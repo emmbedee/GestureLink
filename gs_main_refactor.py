@@ -1,8 +1,8 @@
 import cv2
 import mediapipe as mp
 import tkinter as tk
-import time
 from tkinter import ttk
+import time
 import pyautogui
 from PIL import Image, ImageTk
 
@@ -10,41 +10,70 @@ from PIL import Image, ImageTk
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
-last_volume_up_time = 0
+
+# Global variables for action timing
+last_action_time = 0
+action_interval = 1
+options = ["volumemute", "show_desktop", "maximize_windows", "volumeup_1", "volumeup_2", "alt_tab"]
+# Gesture to action mapping
+gesture_action_map = {
+    "closed_fist": "volumemute",
+    "index_pinky_up": "show_desktop",
+    "index_pinky_thumb_up": "maximize_windows",
+    "L_shape": "volumeup_1",
+    "middle_ring_up": "volumeup_2",
+    "index_middle_up": "alt_tab"
+}
 
 
 def gesture_recognized(hand_landmarks):
-    # Assuming the hand_landmarks is a single hand's landmarks
-
-    # Thumb tip
+    # Existing landmark definitions
     thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
-    # Index finger tip
     index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-    # Middle finger tip
     middle_tip = hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP]
-    # Ring finger tip
     ring_tip = hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP]
-    # Pinky tip
     pinky_tip = hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP]
-    # Index finger MCP (Middle joint)
     index_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
-    # Check if index finger is up and other fingers are down
-    is_index_up = index_tip.y < index_mcp.y
-    are_other_fingers_down = (
-        middle_tip.y > index_mcp.y and
-        ring_tip.y > index_mcp.y and
-        pinky_tip.y > index_mcp.y and
-        thumb_tip.x > index_tip.x  # Assuming a right hand, adjust accordingly
-    )
 
-    return is_index_up and are_other_fingers_down
+    # Gestures detection logic
+    if thumb_tip.x < index_tip.x and thumb_tip.y < index_tip.y:  # L shape
+        return "L_shape"
+    elif all(tip.y > index_mcp.y for tip in [index_tip, middle_tip, ring_tip, pinky_tip]):  # Closed fist
+        return "closed_fist"
+    elif index_tip.y < index_mcp.y and pinky_tip.y < ring_tip.y:  # Index and pinky up
+        return "index_pinky_up"
+    elif middle_tip.y < index_mcp.y and ring_tip.y < index_mcp.y:  # Middle and ring finger up
+        return "middle_ring_up"
+    elif index_tip.y < index_mcp.y and pinky_tip.y < ring_tip.y and thumb_tip.x < index_tip.x:  # Index, pinky, and thumb up
+        return "index_pinky_thumb_up"
+    elif index_tip.y < index_mcp.y and middle_tip.y < index_mcp.y:  # Index and middle finger up
+        return "index_middle_up"
 
-def perform_action():
-    global last_volume_up_time
+    return None
+
+
+def perform_action(gesture):
+    global last_action_time
     current_time = time.time()
-    if current_time - last_volume_up_time >= 1:
-        pyautogui.press('volumeup')
-        last_volume_up_time = current_time
+
+    if current_time - last_action_time >= action_interval:
+        action = gesture_action_map.get(gesture)
+
+        if action == "volumemute":
+            pyautogui.press('volumemute')
+        elif action == "show_desktop":
+            pyautogui.hotkey('win', 'd')
+        elif action == "maximize_windows":
+            pyautogui.hotkey('win', 'shift', 'm')
+        elif action == "volumeup_1":
+            pyautogui.press('volumeup')
+        elif action == "volumeup_2":
+            pyautogui.press('volumeup')
+            pyautogui.press('volumeup')
+        elif action == "alt_tab":
+            pyautogui.hotkey('alt', 'tab')
+
+        last_action_time = current_time
 
 
 class GestureLinkApp:
@@ -92,8 +121,42 @@ class GestureLinkApp:
 
         self.running = False
         self.update()
+        self.create_gestures_ui()
 
         self.window.mainloop()
+
+    def create_gestures_ui(self):
+        # Use a canvas or a frame to define the area for gesture-action mapping
+        self.gesture_canvas = tk.Canvas(self.tabGestures, bg='lightgrey')
+        self.gesture_canvas.pack(fill='both', expand=True)
+
+        # Frame for the gesture-action mappings
+        self.gesture_frame = tk.Frame(self.gesture_canvas, bg='lightgrey')
+        self.gesture_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.dropdown_vars = {}
+
+        row = 0
+        for gesture, action in gesture_action_map.items():
+            # Label for the gesture
+            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0, padx=5, pady=5, sticky='ew')
+
+            # Arrow label
+            arrow_label = tk.Label(self.gesture_frame, text='→', bg='lightgrey', font=('Arial', 16))
+            arrow_label.grid(row=row, column=1, padx=5, pady=5)
+
+            # Drop-down for the action
+            variable = tk.StringVar(self.gesture_frame)
+            variable.set(action)  # default value
+            self.dropdown_vars[gesture] = variable
+            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options)
+            dropdown.config(width=20, anchor='w')
+            dropdown.grid(row=row, column=2, padx=5, pady=5, sticky='ew')
+
+            row += 1
+
+    def set_gesture_action(self, gesture, action):
+        gesture_action_map[gesture] = action
 
     def toggle_webcam(self):
         if self.running:
@@ -120,9 +183,11 @@ class GestureLinkApp:
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                if gesture_recognized(hand_landmarks):
-                    perform_action()
-                    cv2.putText(frame, 'Gesture Recognized!', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                gesture = gesture_recognized(hand_landmarks)
+                if gesture:
+                    perform_action(gesture)
+                    cv2.putText(frame, f'Gesture Recognized: {gesture}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                (0, 255, 0), 2, cv2.LINE_AA)
 
         # Convert frame to PhotoImage
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
