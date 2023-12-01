@@ -63,6 +63,7 @@ def perform_action(gesture):
 class GestureLinkApp:
     def __init__(self, window, window_title):
         self.window = window
+        self.window.resizable(False, False)
         self.window.title(window_title)
         self.main_frame = tk.Frame(window)
         self.main_frame.pack(fill='both', expand=True)
