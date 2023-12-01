@@ -81,67 +81,39 @@ class GestureLinkApp:
         self.window = window
         self.window.title(window_title)
 
-        # Style configuration for tabs to make them larger and centered
-        style = ttk.Style()
-        style.configure('Large.TNotebook.Tab', font=('Arial', '12'), padding=[20, 8])
-
-        # Change the color of the text of the selected tab to blue
-        style.map('Large.TNotebook.Tab',
-                  foreground=[('selected', 'blue')],
-                  background=[
-                      ('selected', 'grey')])  # Optional: change the background color of the selected tab as well
-
-        # Create a tab control with the new style
-        self.tabControl = ttk.Notebook(self.window, style='Large.TNotebook')
-
-        # Create tabs
-        self.tabHome = ttk.Frame(self.tabControl)
-        self.tabGestures = ttk.Frame(self.tabControl)
-        self.tabWebcam = ttk.Frame(self.tabControl)
-        self.tabSettings = ttk.Frame(self.tabControl)
-        self.tabProfiles = ttk.Frame(self.tabControl)
-
-        # Add tabs to the tab control
-        self.tabControl.add(self.tabHome, text='Home')
-        self.tabControl.add(self.tabGestures, text='Gestures')
-        self.tabControl.add(self.tabWebcam, text='Webcam')
-        self.tabControl.add(self.tabSettings, text='Settings')
-        self.tabControl.add(self.tabProfiles, text='Profiles')
-        self.tabControl.pack(expand=1, fill="both")
+        # Main frame
+        self.main_frame = tk.Frame(self.window)
+        self.main_frame.pack(fill='both', expand=True)
 
         # Webcam feed section
         self.video_source = 0  # default webcam
         self.vid = cv2.VideoCapture(self.video_source)
-        self.canvas = tk.Canvas(self.tabWebcam, width=self.vid.get(cv2.CAP_PROP_FRAME_WIDTH), height=self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.canvas.pack()
+        self.canvas = tk.Canvas(self.main_frame, width=self.vid.get(cv2.CAP_PROP_FRAME_WIDTH), height=self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT), bg='grey')
+        self.canvas.pack(side=tk.TOP, fill='both', expand=True)
+        self.canvas.create_text(self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)//2, self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)//2, text="webcam feed", fill="white", font=('Arial', 20))
 
         # Start/Stop button
-        self.btn_toggle_webcam = tk.Button(self.tabWebcam, text="Start", width=10, command=self.toggle_webcam, bg='green')
-        self.btn_toggle_webcam.pack(pady=20)
+        self.btn_toggle_webcam = tk.Button(self.main_frame, text="Start", width=10, command=self.toggle_webcam, bg='green')
+        self.btn_toggle_webcam.pack(side=tk.TOP, pady=10)
+
+        # Gesture-action mappings section
+        self.create_gestures_ui()
 
         self.running = False
         self.update()
-        self.create_gestures_ui()
-
         self.window.mainloop()
 
     def create_gestures_ui(self):
-        # Use a canvas or a frame to define the area for gesture-action mapping
-        self.gesture_canvas = tk.Canvas(self.tabGestures, bg='lightgrey')
-        self.gesture_canvas.pack(fill='both', expand=True)
-
         # Frame for the gesture-action mappings
-        self.gesture_frame = tk.Frame(self.gesture_canvas, bg='lightgrey')
-        self.gesture_frame.place(relx=0.5, rely=0.5, anchor='center')
+        self.gesture_frame = tk.Frame(self.main_frame, bg='lightgrey')
+        self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True)
 
         self.dropdown_vars = {}
 
         row = 0
         for gesture, action in gesture_action_map.items():
             # Label for the gesture
-            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0,
-                                                                                                  padx=5, pady=5,
-                                                                                                  sticky='ew')
+            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0, padx=5, pady=5, sticky='ew')
 
             # Arrow label
             arrow_label = tk.Label(self.gesture_frame, text='→', bg='lightgrey', font=('Arial', 16))
@@ -151,8 +123,7 @@ class GestureLinkApp:
             variable = tk.StringVar(self.gesture_frame)
             variable.set(action)  # default value
             self.dropdown_vars[gesture] = variable
-            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options,
-                                     command=lambda value, g=gesture: self.update_gesture_action(g, value))
+            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
             dropdown.config(width=20, anchor='w')
             dropdown.grid(row=row, column=2, padx=5, pady=5, sticky='ew')
 
