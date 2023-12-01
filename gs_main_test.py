@@ -63,7 +63,6 @@ def perform_action(gesture):
 class GestureLinkApp:
     def __init__(self, window, window_title):
         self.window = window
-        self.window.resizable(False, False)
         self.window.title(window_title)
         self.main_frame = tk.Frame(window)
         self.main_frame.pack(fill='both', expand=True)
@@ -157,7 +156,7 @@ class GestureLinkApp:
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-                if (gesture := gesture_recognized(hand_landmarks)):
+                if gesture := gesture_recognized(hand_landmarks):
                     perform_action(gesture)
                     cv2.putText(frame, f'Gesture Recognized: {gesture}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)))
