@@ -1,14 +1,11 @@
 import sys
 import cv2
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QTimer
-import cv2
+from PyQt5.QtCore import QTimer, Qt
 import mediapipe as mp
-import tkinter as tk
 import time
 import pyautogui
-from PIL import Image, ImageTk
 
 # Initialize MediaPipe solutions for hand tracking
 mp_hands = mp.solutions.hands
@@ -18,14 +15,13 @@ mp_draw = mp.solutions.drawing_utils
 # Global variables for action timing
 last_action_time = 0
 action_interval = 1
-options = ["volumemute", "show_desktop", "maximize_windows", "volumeup", "volumeup_x2", "alt_tab"]
 gesture_action_map = {
-    "closed_fist": "volumemute",
-    "index_pinky_up": "show_desktop",
-    "index_pinky_thumb_up": "maximize_windows",
-    "L_shape": "volumeup",
-    "middle_ring_up": "volumeup_x2",
-    "index_middle_up": "alt_tab"
+    "closed_fist": None,
+    "index_pinky_up": None,
+    "index_pinky_thumb_up": None,
+    "L_shape": None,
+    "middle_ring_up": None,
+    "index_middle_up": None
 }
 
 def gesture_recognized(hand_landmarks):
@@ -77,8 +73,32 @@ class GestureLinkApp(QMainWindow):
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
 
-        # Webcam feed
+        # Set styles for the widgets
+        self.central_widget.setStyleSheet("""
+            QWidget { font-family: 'Arial'; background-color: #f2f2f2; }
+            QLabel { color: #555; font-size: 14px; }
+            QPushButton { 
+                border-radius: 10px; 
+                background-color: #4CAF50; 
+                color: white; 
+                padding: 10px; 
+                font-size: 14px; 
+                margin: 10px 0; 
+            }
+            QPushButton:hover { background-color: #45a049; }
+            QComboBox { 
+                border-radius: 5px; 
+                padding: 5px; 
+                margin: 5px 0; 
+                background-color: white;
+                selection-background-color: #4CAF50;
+            }
+        """)
+
+        # Webcam feed label
         self.webcam_label = QLabel("Webcam feed")
+        self.webcam_label.setAlignment(Qt.AlignCenter)
+        self.webcam_label.setStyleSheet("border: 1px solid #ddd; padding: 10px;")
         self.layout.addWidget(self.webcam_label)
 
         # Toggle webcam button
@@ -97,15 +117,30 @@ class GestureLinkApp(QMainWindow):
         self.vid = cv2.VideoCapture(self.video_source)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
+        self.setup_gesture_ui()
 
     def setup_gesture_ui(self):
-        for i, gesture in enumerate(["closed_fist", "index_pinky_up", "index_pinky_thumb_up", "L_shape", "middle_ring_up", "index_middle_up"]):
-            label = QLabel(gesture)
+        gesture_labels = {
+            "closed_fist": "Closed Fist",
+            "index_pinky_up": "Index Pinky Up",
+            "index_pinky_thumb_up": "Index Pinky Thumb Up",
+            "L_shape": "L Shape",
+            "middle_ring_up": "Middle Ring Up",
+            "index_middle_up": "Index Middle Up"
+        }
+        self.comboboxes = {}
+        for i, (gesture_key, gesture_name) in enumerate(gesture_labels.items()):
+            label = QLabel(gesture_name)
             self.gesture_layout.addWidget(label, i, 0)
             combobox = QComboBox()
             combobox.addItems(["None", "volumemute", "show_desktop", "maximize_windows", "volumeup", "volumeup_x2", "alt_tab"])
+            combobox.setCurrentIndex(0)  # Set "None" as default
+            combobox.currentIndexChanged.connect(lambda index, key=gesture_key, box=combobox: self.update_gesture_action_map(key, box))
             self.gesture_layout.addWidget(combobox, i, 1)
+            self.comboboxes[gesture_key] = combobox
 
+    def update_gesture_action_map(self, gesture, combobox):
+        gesture_action_map[gesture] = combobox.currentText() if combobox.currentText() != "None" else None
     def toggle_webcam(self):
         if self.timer.isActive():
             self.timer.stop()
@@ -118,8 +153,14 @@ class GestureLinkApp(QMainWindow):
         ret, frame = self.vid.read()
         if ret:
             frame = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
-            # ... [rest of the frame processing logic]
-            image = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_RGB888)
+            # Hand tracking and gesture recognition logic
+            results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    gesture = gesture_recognized(hand_landmarks)
+                    perform_action(gesture)
+                    mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            image = QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
             self.webcam_label.setPixmap(QPixmap.fromImage(image))
 
 if __name__ == "__main__":
