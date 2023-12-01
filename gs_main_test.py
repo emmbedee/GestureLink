@@ -139,7 +139,9 @@ class GestureLinkApp:
         row = 0
         for gesture, action in gesture_action_map.items():
             # Label for the gesture
-            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0, padx=5, pady=5, sticky='ew')
+            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0,
+                                                                                                  padx=5, pady=5,
+                                                                                                  sticky='ew')
 
             # Arrow label
             arrow_label = tk.Label(self.gesture_frame, text='→', bg='lightgrey', font=('Arial', 16))
@@ -149,14 +151,15 @@ class GestureLinkApp:
             variable = tk.StringVar(self.gesture_frame)
             variable.set(action)  # default value
             self.dropdown_vars[gesture] = variable
-            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options)
+            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options,
+                                     command=lambda value, g=gesture: self.update_gesture_action(g, value))
             dropdown.config(width=20, anchor='w')
             dropdown.grid(row=row, column=2, padx=5, pady=5, sticky='ew')
 
             row += 1
 
-    def set_gesture_action(self, gesture, action):
-        gesture_action_map[gesture] = action
+    def update_gesture_action(self, gesture, new_action):
+        gesture_action_map[gesture] = new_action
 
     def toggle_webcam(self):
         if self.running:
