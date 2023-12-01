@@ -13,17 +13,18 @@ mp_draw = mp.solutions.drawing_utils
 # Global variables for action timing
 last_action_time = 0
 action_interval = 1
-options = ["volumemute", "show_desktop", "maximize_windows", "volumeup", "volumeup_x2", "alt_tab"]
+options = ["None", "volumemute", "show_desktop", "maximize_windows", "volumeup", "volumeup_x2", "alt_tab"]
 gesture_action_map = {
-    "closed_fist": "volumemute",
-    "index_pinky_up": "show_desktop",
-    "index_pinky_thumb_up": "maximize_windows",
-    "L_shape": "volumeup",
-    "middle_ring_up": "volumeup_x2",
-    "index_middle_up": "alt_tab"
+    "closed_fist": "None",
+    "index_pinky_up": "None",
+    "index_pinky_thumb_up": "None",
+    "L_shape": "None",
+    "middle_ring_up": "None",
+    "index_middle_up": "None"
 }
 
 def gesture_recognized(hand_landmarks):
+    # Gesture recognition logic here...
     thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.THUMB_TIP, mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.PINKY_TIP]]
     index_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
 
@@ -40,24 +41,22 @@ def gesture_recognized(hand_landmarks):
     elif index_tip.y < index_mcp.y and middle_tip.y < index_mcp.y:
         return "index_middle_up"
 
-def perform_action(gesture):
+def perform_action(action):
     global last_action_time
     if time.time() - last_action_time >= action_interval:
-        action = gesture_action_map.get(gesture)
-        if action:
-            if action == "volumeup":
-                pyautogui.press('volumeup')
-            elif action == "volumeup_x2":
-                pyautogui.press('volumeup')
-                pyautogui.press('volumeup')
-            elif action == "volumemute":
-                pyautogui.press('volumemute')
-            elif action == "show_desktop":
-                pyautogui.hotkey('win', 'd')
-            elif action == "maximize_windows":
-                pyautogui.hotkey('win', 'shift', 'm')
-            elif action == "alt_tab":
-                pyautogui.hotkey('alt', 'tab')
+        if action == "volumeup":
+            pyautogui.press('volumeup')
+        elif action == "volumeup_x2":
+            pyautogui.press('volumeup')
+            pyautogui.press('volumeup')
+        elif action == "volumemute":
+            pyautogui.press('volumemute')
+        elif action == "show_desktop":
+            pyautogui.hotkey('win', 'd')
+        elif action == "maximize_windows":
+            pyautogui.hotkey('win', 'shift', 'm')
+        elif action == "alt_tab":
+            pyautogui.hotkey('alt', 'tab')
         last_action_time = time.time()
 
 class GestureLinkApp:
@@ -76,14 +75,12 @@ class GestureLinkApp:
         self.btn_toggle_webcam = tk.Button(self.main_frame, text="Start", width=10, command=self.toggle_webcam, bg='green')
         self.btn_toggle_webcam.pack(side=tk.TOP, pady=10)
 
-        # Initialize gesture_action_map with None for each gesture
-        self.gesture_action_map = {gesture: None for gesture in ["closed_fist", "index_pinky_up", "index_pinky_thumb_up", "L_shape", "middle_ring_up", "index_middle_up"]}
-        self.action_taken = {option: False for option in options}  # Track if an action is taken
+        self.gesture_action_map = {gesture: tk.StringVar(value=action) for gesture, action in gesture_action_map.items()}
 
         self.gesture_frame = tk.Frame(self.main_frame, bg='lightgrey')
-        self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True)
-        self.create_gestures_ui()
+        self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True, padx=10, pady=10)
 
+        self.create_gestures_ui()
         self.running = False
         self.update()
 
@@ -93,46 +90,16 @@ class GestureLinkApp:
         bg_color = '#f0f0f0'
         text_color = '#333'
 
-        self.gesture_frame = tk.Frame(self.main_frame, bg=bg_color)
-        self.gesture_frame.pack(side=tk.BOTTOM, fill='both', expand=True, padx=10, pady=10)
-
-        for row, (gesture, action) in enumerate(self.gesture_action_map.items()):
+        for row, (gesture, action_var) in enumerate(self.gesture_action_map.items()):
             gesture_label = tk.Label(self.gesture_frame, text=gesture, bg='white', fg=text_color, font=label_font, width=20, relief='solid')
             gesture_label.grid(row=row, column=0, padx=10, pady=5, sticky='ew')
 
             arrow_label = tk.Label(self.gesture_frame, text='→', bg=bg_color, fg=text_color, font=label_font, width=20)
             arrow_label.grid(row=row, column=1, padx=5, pady=5)
 
-            dropdown_var = tk.StringVar(self.gesture_frame)
-            dropdown_var.set(action)  # default value
-            dropdown = tk.OptionMenu(self.gesture_frame, dropdown_var, "None", *options, command=lambda value, g=gesture: self.update_gesture_action(g, value))
+            dropdown = tk.OptionMenu(self.gesture_frame, action_var, *options)
             dropdown.config(font=dropdown_font, anchor='w')
             dropdown.grid(row=row, column=2, padx=10, pady=5, sticky='ew')
-
-            menu = dropdown["menu"]
-            menu.delete(0, 'end')
-            menu.add_command(label="None", command=tk._setit(dropdown_var, "None", lambda value="None", g=gesture: self.update_gesture_action(g, value)))
-            for option in options:
-                menu.add_command(label=option, command=tk._setit(dropdown_var, option, lambda value=option, g=gesture: self.update_gesture_action(g, value)))
-                if self.action_taken[option] and self.gesture_action_map[gesture] != option:
-                    menu.entryconfig(option, state='disabled')
-
-    def update_gesture_action(self, gesture, new_action):
-        if new_action == "None":
-            new_action = None
-
-        if self.gesture_action_map[gesture]:
-            self.action_taken[self.gesture_action_map[gesture]] = False
-
-        self.gesture_action_map[gesture] = new_action
-        if new_action:
-            self.action_taken[new_action] = True
-
-        self.gesture_frame.pack_forget()
-        self.gesture_frame.destroy()
-        self.gesture_frame = tk.Frame(self.main_frame, bg='lightgrey')
-        self.create_gestures_ui()
-
 
     def toggle_webcam(self):
         self.running = not self.running
@@ -157,8 +124,13 @@ class GestureLinkApp:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 if gesture := gesture_recognized(hand_landmarks):
-                    perform_action(gesture)
-                    cv2.putText(frame, f'Gesture Recognized: {gesture}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                    action = self.gesture_action_map.get(gesture).get()
+                    if action and action != "None":
+                        perform_action(action)
+                        cv2.putText(frame, f'Gesture Recognized: {gesture}', (10, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+                        cv2.putText(frame, f'Action: {action}', (10, 100),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)))
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
