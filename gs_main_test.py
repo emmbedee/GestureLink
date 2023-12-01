@@ -14,7 +14,7 @@ mp_draw = mp.solutions.drawing_utils
 # Global variables for action timing
 last_action_time = 0
 action_interval = 1
-
+options = ["volumemute", "show_desktop", "maximize_windows", "volumeup_1", "volumeup_2", "alt_tab"]
 # Gesture to action mapping
 gesture_action_map = {
     "closed_fist": "volumemute",
@@ -126,18 +126,34 @@ class GestureLinkApp:
         self.window.mainloop()
 
     def create_gestures_ui(self):
+        # Use a canvas or a frame to define the area for gesture-action mapping
+        self.gesture_canvas = tk.Canvas(self.tabGestures, bg='lightgrey')
+        self.gesture_canvas.pack(fill='both', expand=True)
+
+        # Frame for the gesture-action mappings
+        self.gesture_frame = tk.Frame(self.gesture_canvas, bg='lightgrey')
+        self.gesture_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+        self.dropdown_vars = {}
+
+        row = 0
         for gesture, action in gesture_action_map.items():
-            frame = tk.Frame(self.tabGestures)
-            frame.pack()
+            # Label for the gesture
+            tk.Label(self.gesture_frame, text=gesture, bg='white', width=20, relief='solid').grid(row=row, column=0, padx=5, pady=5, sticky='ew')
 
-            label = tk.Label(frame, text=gesture)
-            label.pack(side=tk.LEFT)
+            # Arrow label
+            arrow_label = tk.Label(self.gesture_frame, text='→', bg='lightgrey', font=('Arial', 16))
+            arrow_label.grid(row=row, column=1, padx=5, pady=5)
 
-            options = ["volumemute", "show_desktop", "maximize_windows", "volumeup_1", "volumeup_2", "alt_tab"]
-            variable = tk.StringVar(frame)
+            # Drop-down for the action
+            variable = tk.StringVar(self.gesture_frame)
             variable.set(action)  # default value
-            dropdown = tk.OptionMenu(frame, variable, *options, command=lambda value, g=gesture: self.set_gesture_action(g, value))
-            dropdown.pack(side=tk.RIGHT)
+            self.dropdown_vars[gesture] = variable
+            dropdown = tk.OptionMenu(self.gesture_frame, variable, *options)
+            dropdown.config(width=20, anchor='w')
+            dropdown.grid(row=row, column=2, padx=5, pady=5, sticky='ew')
+
+            row += 1
 
     def set_gesture_action(self, gesture, action):
         gesture_action_map[gesture] = action
