@@ -100,7 +100,7 @@ class GestureLinkApp:
             gesture_label = tk.Label(self.gesture_frame, text=gesture, bg='white', fg=text_color, font=label_font, width=20, relief='solid')
             gesture_label.grid(row=row, column=0, padx=10, pady=5, sticky='ew')
 
-            arrow_label = tk.Label(self.gesture_frame, text='→', bg=bg_color, fg=text_color, font=label_font)
+            arrow_label = tk.Label(self.gesture_frame, text='→', bg=bg_color, fg=text_color, font=label_font, width=20)
             arrow_label.grid(row=row, column=1, padx=5, pady=5)
 
             dropdown_var = tk.StringVar(self.gesture_frame)
