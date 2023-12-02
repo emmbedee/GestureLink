@@ -155,9 +155,11 @@ class GestureLinkApp(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.toggle_webcam_button.setText("Start Webcam")
+            self.toggle_webcam_button.setStyleSheet("background-color: #4CAF50;")  # Green for inactive
         else:
             self.timer.start(20)  # Update frame every 20 ms
             self.toggle_webcam_button.setText("Stop Webcam")
+            self.toggle_webcam_button.setStyleSheet("background-color: #f44336;")  # Red for active
 
     def update_frame(self):
         ret, frame = self.vid.read()
