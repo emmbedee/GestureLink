@@ -13,7 +13,7 @@ mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
 
-# Initalize pygame for audio feedback
+# Initialize pygame for audio feedback
 pygame.init()
 pygame.mixer.init()
 chime_sound = pygame.mixer.Sound("chime.wav")
@@ -55,21 +55,20 @@ def perform_action(gesture):
     if time.time() - last_action_time >= action_interval:
         action = gesture_action_map.get(gesture)
         if action:
-            if action == "volumeup":
+            if action == "volume_up":
                 pyautogui.press('volumeup')
                 chime_sound.play()
-            elif action == "volumeup_x2":
-                pyautogui.press('volumeup')
-                pyautogui.press('volumeup')
+            elif action == "volume_down":
+                pyautogui.press('volumedown')
                 chime_sound.play()
-            elif action == "volumemute":
+            elif action == "mute":
                 pyautogui.press('volumemute')
                 chime_sound.play()
             elif action == "show_desktop":
                 pyautogui.hotkey('win', 'd')
                 chime_sound.play()
-            elif action == "maximize_windows":
-                pyautogui.hotkey('win', 'shift', 'm')
+            elif action == "play_pause_media":
+                pyautogui.press('playpause')
                 chime_sound.play()
             elif action == "alt_tab":
                 pyautogui.hotkey('alt', 'tab')
@@ -146,8 +145,8 @@ class GestureLinkApp(QMainWindow):
             label = QLabel(gesture_name)
             self.gesture_layout.addWidget(label, i, 0)
             combobox = QComboBox()
-            combobox.addItems(["None", "volumemute", "show_desktop", "maximize_windows", "volumeup", "volumeup_x2", "alt_tab"])
-            combobox.setCurrentIndex(0)  # Set "None" as default
+            combobox.addItems(["None", "volume_up", "volume_down", "mute", "show_desktop", "play_pause_media", "alt_tab"])
+            combobox.setCurrentIndex(0)
             combobox.currentIndexChanged.connect(lambda index, key=gesture_key, box=combobox: self.update_gesture_action_map(key, box))
             self.gesture_layout.addWidget(combobox, i, 1)
             self.comboboxes[gesture_key] = combobox
