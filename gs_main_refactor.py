@@ -1,4 +1,5 @@
 import sys
+import pygame
 import cv2
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout
 from PyQt5.QtGui import QImage, QPixmap
@@ -11,6 +12,11 @@ import pyautogui
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
+
+# Initalize pygame for audio feedback
+pygame.init()
+pygame.mixer.init()
+chime_sound = pygame.mixer.Sound("chime.wav")
 
 # Global variables for action timing
 last_action_time = 0
@@ -51,26 +57,30 @@ def perform_action(gesture):
         if action:
             if action == "volumeup":
                 pyautogui.press('volumeup')
+                chime_sound.play()
             elif action == "volumeup_x2":
                 pyautogui.press('volumeup')
                 pyautogui.press('volumeup')
+                chime_sound.play()
             elif action == "volumemute":
                 pyautogui.press('volumemute')
+                chime_sound.play()
             elif action == "show_desktop":
                 pyautogui.hotkey('win', 'd')
+                chime_sound.play()
             elif action == "maximize_windows":
                 pyautogui.hotkey('win', 'shift', 'm')
+                chime_sound.play()
             elif action == "alt_tab":
                 pyautogui.hotkey('alt', 'tab')
+                chime_sound.play()
         last_action_time = time.time()
 
 class GestureLinkApp(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Gesture Link App")
         self.setGeometry(100, 100, 800, 600)  # Set initial size and position of the window
-
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
