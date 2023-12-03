@@ -17,29 +17,32 @@ last_action_time = 0
 action_interval = 1
 gesture_action_map = {
     "closed_fist": None,
-    "index_pinky_up": None,
-    "index_pinky_thumb_up": None,
-    "L_shape": None,
-    "middle_ring_up": None,
-    "index_middle_up": None
+    "index_finger_up": None,
+    "index_middle_finger_up": None,
+    "index_middle_ring_finger_up": None,
+    "index_middle_ring_pinky_finger_up": None,
+    "index_pinky_up": None
 }
+
 
 def gesture_recognized(hand_landmarks):
     thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.THUMB_TIP, mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.PINKY_TIP]]
-    index_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
+    index_mcp, middle_mcp, ring_mcp, pinky_mcp = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP, mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]]
 
-    if thumb_tip.x < index_tip.x and thumb_tip.y < index_tip.y:
-        return "L_shape"
-    elif all(tip.y > index_mcp.y for tip in [index_tip, middle_tip, ring_tip, pinky_tip]):
+    # Check for each gesture
+    if all(tip.y > index_mcp.y for tip in [index_tip, middle_tip, ring_tip, pinky_tip]):
         return "closed_fist"
-    elif index_tip.y < index_mcp.y and pinky_tip.y < ring_tip.y:
+    elif index_tip.y < index_mcp.y and all(tip.y > index_mcp.y for tip in [middle_tip, ring_tip, pinky_tip]):
+        return "index_finger_up"
+    elif all(tip.y < index_mcp.y for tip in [index_tip, middle_tip]) and all(tip.y > index_mcp.y for tip in [ring_tip, pinky_tip]):
+        return "index_middle_finger_up"
+    elif all(tip.y < index_mcp.y for tip in [index_tip, middle_tip, ring_tip]) and pinky_tip.y > index_mcp.y:
+        return "index_middle_ring_finger_up"
+    elif all(tip.y < index_mcp.y for tip in [index_tip, middle_tip, ring_tip, pinky_tip]):
+        return "index_middle_ring_pinky_finger_up"
+    elif index_tip.y < index_mcp.y and pinky_tip.y < pinky_mcp.y and all(tip.y > mcp.y for tip, mcp in [(middle_tip, middle_mcp), (ring_tip, ring_mcp)]):
         return "index_pinky_up"
-    elif middle_tip.y < index_mcp.y and ring_tip.y < index_mcp.y:
-        return "middle_ring_up"
-    elif index_tip.y < index_mcp.y and pinky_tip.y < ring_tip.y and thumb_tip.x < index_tip.x:
-        return "index_pinky_thumb_up"
-    elif index_tip.y < index_mcp.y and middle_tip.y < index_mcp.y:
-        return "index_middle_up"
+
 
 def perform_action(gesture):
     global last_action_time
@@ -122,11 +125,11 @@ class GestureLinkApp(QMainWindow):
     def setup_gesture_ui(self):
         gesture_labels = {
             "closed_fist": "Closed Fist",
-            "index_pinky_up": "Index Pinky Up",
-            "index_pinky_thumb_up": "Index Pinky Thumb Up",
-            "L_shape": "L Shape",
-            "middle_ring_up": "Middle Ring Up",
-            "index_middle_up": "Index Middle Up"
+            "index_finger_up": "Index Finger Up",
+            "index_middle_finger_up": "Index Middle Finger Up",
+            "index_middle_ring_finger_up": "Index Middle Ring Finger Up",
+            "index_middle_ring_pinky_finger_up": "Index Middle Ring Pinky Finger Up",
+            "index_pinky_up": "Index and Pinky Up"
         }
         self.comboboxes = {}
         for i, (gesture_key, gesture_name) in enumerate(gesture_labels.items()):
