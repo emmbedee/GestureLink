@@ -4,6 +4,7 @@ import cv2
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import QHBoxLayout, QSpacerItem, QSizePolicy
 import mediapipe as mp
 import time
 import pyautogui
@@ -83,6 +84,7 @@ class GestureLinkApp(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
+        button_layout = QHBoxLayout()
         self.central_widget.setLayout(self.layout)
         self.gesture_recognition_active = False
 
@@ -117,12 +119,17 @@ class GestureLinkApp(QMainWindow):
         # Toggle webcam button
         self.toggle_webcam_button = QPushButton("Start Webcam")
         self.toggle_webcam_button.clicked.connect(self.toggle_webcam)
-        self.layout.addWidget(self.toggle_webcam_button)
+        button_layout.addWidget(self.toggle_webcam_button)
+
+        spacer = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        button_layout.addItem(spacer)
 
         # Toggle gesture recognition button
         self.toggle_gesture_recognition_button = QPushButton("Activate Gesture Recognition")
         self.toggle_gesture_recognition_button.clicked.connect(self.toggle_gesture_recognition)
-        self.layout.addWidget(self.toggle_gesture_recognition_button)
+        button_layout.addWidget(self.toggle_gesture_recognition_button)
+
+        self.layout.addLayout(button_layout)
 
         # Gesture-action mapping UI
         self.gesture_frame = QWidget()
