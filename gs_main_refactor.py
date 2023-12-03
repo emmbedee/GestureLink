@@ -8,7 +8,20 @@ import pyautogui
 import mediapipe as mp
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout, QHBoxLayout, QSpacerItem, QSizePolicy
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QComboBox,
+    QGridLayout,
+    QHBoxLayout,
+    QSpacerItem,
+    QSizePolicy,
+    QStatusBar,
+)
 
 # Initialize MediaPipe solutions for hand tracking
 mp_hands = mp.solutions.hands
@@ -29,11 +42,12 @@ gesture_action_map = {
     "index_middle_finger_up": None,
     "index_middle_ring_finger_up": None,
     "index_middle_ring_pinky_finger_up": None,
-    "index_pinky_up": None
+    "index_pinky_up": None,
 }
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_FILE = os.path.join(BASE_DIR, 'gesture_settings.json')
+
 
 def load_gesture_settings():
     try:
@@ -41,6 +55,7 @@ def load_gesture_settings():
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         return None
+
 
 def save_gesture_settings():
     with open('gesture_settings.json', 'w') as file:
@@ -51,7 +66,6 @@ def gesture_recognized(hand_landmarks):
     thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.THUMB_TIP, mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.PINKY_TIP]]
     index_mcp, middle_mcp, ring_mcp, pinky_mcp = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP, mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]]
 
-    # Check for each gesture
     if all(tip.y > index_mcp.y for tip in [index_tip, middle_tip, ring_tip, pinky_tip]):
         return "closed_fist"
     elif index_tip.y < index_mcp.y and all(tip.y > index_mcp.y for tip in [middle_tip, ring_tip, pinky_tip]):
@@ -91,11 +105,12 @@ def perform_action(gesture):
                 chime_sound.play()
         last_action_time = time.time()
 
+
 class GestureLinkApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gesture Link App")
-        self.setGeometry(100, 100, 800, 600)  # Set initial size and position of the window
+        self.setGeometry(100, 100, 800, 600)
 
         loaded_settings = load_gesture_settings()
         if loaded_settings is not None:
@@ -140,6 +155,7 @@ class GestureLinkApp(QMainWindow):
         # Toggle webcam button
         self.toggle_webcam_button = QPushButton("Start Webcam")
         self.toggle_webcam_button.clicked.connect(self.toggle_webcam)
+        self.toggle_webcam_button.setToolTip("Click to start or stop the webcam")
         button_layout.addWidget(self.toggle_webcam_button)
 
         spacer = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -148,6 +164,7 @@ class GestureLinkApp(QMainWindow):
         # Toggle gesture recognition button
         self.toggle_gesture_recognition_button = QPushButton("Activate Gesture Recognition")
         self.toggle_gesture_recognition_button.clicked.connect(self.toggle_gesture_recognition)
+        self.toggle_gesture_recognition_button.setToolTip("Click to activate or deactivate gesture recognition")
         button_layout.addWidget(self.toggle_gesture_recognition_button)
 
         self.layout.addLayout(button_layout)
@@ -165,6 +182,10 @@ class GestureLinkApp(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
 
+        # Status bar
+        self.statusBar = QStatusBar()
+        self.setStatusBar(self.statusBar)
+
     def setup_gesture_ui(self):
         gesture_labels = {
             "closed_fist": "Closed Fist",
@@ -172,7 +193,7 @@ class GestureLinkApp(QMainWindow):
             "index_middle_finger_up": "Index Middle Finger Up",
             "index_middle_ring_finger_up": "Index Middle Ring Finger Up",
             "index_middle_ring_pinky_finger_up": "Index Middle Ring Pinky Finger Up",
-            "index_pinky_up": "Index and Pinky Up"
+            "index_pinky_up": "Index and Pinky Up",
         }
         self.comboboxes = {}
         for i, (gesture_key, gesture_name) in enumerate(gesture_labels.items()):
@@ -199,9 +220,8 @@ class GestureLinkApp(QMainWindow):
                 if index >= 0:
                     combobox.setCurrentIndex(index)
             else:
-                combobox.setCurrentIndex(0)  # Set to 'None'
+                combobox.setCurrentIndex(0)
 
-            # Disabling other actions that are already selected
             current_action = combobox.currentText()
             selected_actions = set(gesture_action_map.values())
             for i in range(combobox.count()):
@@ -216,20 +236,24 @@ class GestureLinkApp(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.toggle_webcam_button.setText("Start Webcam")
-            self.toggle_webcam_button.setStyleSheet("background-color: #4CAF50;")  # Green for inactive
+            self.toggle_webcam_button.setStyleSheet("background-color: #4CAF50;")
+            self.statusBar.showMessage("Webcam is now stopped.")
         else:
-            self.timer.start(20)  # Update frame every 20 ms
+            self.timer.start(20)
             self.toggle_webcam_button.setText("Stop Webcam")
-            self.toggle_webcam_button.setStyleSheet("background-color: #f44336;")  # Red for active
+            self.toggle_webcam_button.setStyleSheet("background-color: #f44336;")
+            self.statusBar.showMessage("Webcam is now active.")
 
     def toggle_gesture_recognition(self):
         self.gesture_recognition_active = not self.gesture_recognition_active
         if self.gesture_recognition_active:
             self.toggle_gesture_recognition_button.setText("Deactivate Gesture Recognition")
-            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #f44336;")  # Red for active
+            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #f44336;")
+            self.statusBar.showMessage("Gesture recognition is now active.")
         else:
             self.toggle_gesture_recognition_button.setText("Activate Gesture Recognition")
-            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #4CAF50;")  # Green for inactive
+            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #4CAF50;")
+            self.statusBar.showMessage("Gesture recognition is now deactivated.")
 
     def update_frame(self):
         ret, frame = self.vid.read()
@@ -244,15 +268,14 @@ class GestureLinkApp(QMainWindow):
                         perform_action(gesture)
                         mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                        # Overlay text for gesture and action
                         cv2.putText(frame, f"Gesture Recognized: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                         cv2.putText(frame, f"Action: {action}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-            # Convert the frame back to QImage and set it to the label
             h, w, ch = frame.shape
             bytes_per_line = ch * w
             convert_to_Qt_format = QImage(frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
             self.webcam_label.setPixmap(QPixmap.fromImage(convert_to_Qt_format))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
