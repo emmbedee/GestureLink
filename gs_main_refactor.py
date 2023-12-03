@@ -1,13 +1,12 @@
 import sys
-import pygame
-import cv2
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QHBoxLayout, QSpacerItem, QSizePolicy
-import mediapipe as mp
 import time
+import cv2
+import pygame
 import pyautogui
+import mediapipe as mp
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QGridLayout, QHBoxLayout, QSpacerItem, QSizePolicy
 
 # Initialize MediaPipe solutions for hand tracking
 mp_hands = mp.solutions.hands
@@ -142,7 +141,6 @@ class GestureLinkApp(QMainWindow):
         self.vid = cv2.VideoCapture(self.video_source)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
-        self.setup_gesture_ui()
 
     def setup_gesture_ui(self):
         gesture_labels = {
