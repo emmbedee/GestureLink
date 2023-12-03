@@ -84,6 +84,7 @@ class GestureLinkApp(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
+        self.gesture_recognition_active = False
 
         # Set styles for the widgets
         self.central_widget.setStyleSheet("""
@@ -117,6 +118,11 @@ class GestureLinkApp(QMainWindow):
         self.toggle_webcam_button = QPushButton("Start Webcam")
         self.toggle_webcam_button.clicked.connect(self.toggle_webcam)
         self.layout.addWidget(self.toggle_webcam_button)
+
+        # Toggle gesture recognition button
+        self.toggle_gesture_recognition_button = QPushButton("Activate Gesture Recognition")
+        self.toggle_gesture_recognition_button.clicked.connect(self.toggle_gesture_recognition)
+        self.layout.addWidget(self.toggle_gesture_recognition_button)
 
         # Gesture-action mapping UI
         self.gesture_frame = QWidget()
@@ -173,22 +179,31 @@ class GestureLinkApp(QMainWindow):
             self.toggle_webcam_button.setText("Stop Webcam")
             self.toggle_webcam_button.setStyleSheet("background-color: #f44336;")  # Red for active
 
+    def toggle_gesture_recognition(self):
+        self.gesture_recognition_active = not self.gesture_recognition_active
+        if self.gesture_recognition_active:
+            self.toggle_gesture_recognition_button.setText("Deactivate Gesture Recognition")
+            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #f44336;")  # Red for active
+        else:
+            self.toggle_gesture_recognition_button.setText("Activate Gesture Recognition")
+            self.toggle_gesture_recognition_button.setStyleSheet("background-color: #4CAF50;")  # Green for inactive
+
     def update_frame(self):
         ret, frame = self.vid.read()
         if ret:
             frame = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
-            results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    gesture = gesture_recognized(hand_landmarks)
-                    action = gesture_action_map.get(gesture, "No action")
-                    perform_action(gesture)
-                    mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            if self.gesture_recognition_active:
+                results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                if results.multi_hand_landmarks:
+                    for hand_landmarks in results.multi_hand_landmarks:
+                        gesture = gesture_recognized(hand_landmarks)
+                        action = gesture_action_map.get(gesture, "No action")
+                        perform_action(gesture)
+                        mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                    # Overlay text for gesture and action
-                    cv2.putText(frame, f"Gesture Recognized: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
-                                (255, 255, 255), 2)
-                    cv2.putText(frame, f"Action: {action}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                        # Overlay text for gesture and action
+                        cv2.putText(frame, f"Gesture Recognized: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                        cv2.putText(frame, f"Action: {action}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
             # Convert the frame back to QImage and set it to the label
             h, w, ch = frame.shape
