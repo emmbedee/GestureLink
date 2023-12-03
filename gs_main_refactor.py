@@ -1,6 +1,8 @@
 import sys
 import time
 import cv2
+import os
+import json
 import pygame
 import pyautogui
 import mediapipe as mp
@@ -29,6 +31,20 @@ gesture_action_map = {
     "index_middle_ring_pinky_finger_up": None,
     "index_pinky_up": None
 }
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SETTINGS_FILE = os.path.join(BASE_DIR, 'gesture_settings.json')
+
+def load_gesture_settings():
+    try:
+        with open('gesture_settings.json', 'r') as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+def save_gesture_settings():
+    with open('gesture_settings.json', 'w') as file:
+        json.dump(gesture_action_map, file)
 
 
 def gesture_recognized(hand_landmarks):
@@ -80,6 +96,12 @@ class GestureLinkApp(QMainWindow):
         super().__init__()
         self.setWindowTitle("Gesture Link App")
         self.setGeometry(100, 100, 800, 600)  # Set initial size and position of the window
+
+        loaded_settings = load_gesture_settings()
+        if loaded_settings is not None:
+            global gesture_action_map
+            gesture_action_map.update(loaded_settings)
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
@@ -136,6 +158,7 @@ class GestureLinkApp(QMainWindow):
         self.gesture_frame.setLayout(self.gesture_layout)
         self.layout.addWidget(self.gesture_frame)
         self.setup_gesture_ui()
+        self.update_comboboxes()
 
         self.video_source = 0
         self.vid = cv2.VideoCapture(self.video_source)
@@ -165,15 +188,30 @@ class GestureLinkApp(QMainWindow):
 
     def update_gesture_action_map(self, gesture, combobox):
         gesture_action_map[gesture] = combobox.currentText() if combobox.currentText() != "None" else None
+        save_gesture_settings()
         self.update_comboboxes()
 
     def update_comboboxes(self):
-        selected_actions = set(gesture_action_map.values())
-        for combobox in self.comboboxes.values():
+        for gesture, combobox in self.comboboxes.items():
+            action = gesture_action_map.get(gesture)
+            if action:
+                index = combobox.findText(action)
+                if index >= 0:
+                    combobox.setCurrentIndex(index)
+            else:
+                combobox.setCurrentIndex(0)  # Set to 'None'
+
+            # Disabling other actions that are already selected
             current_action = combobox.currentText()
+            selected_actions = set(gesture_action_map.values())
             for i in range(combobox.count()):
                 action = combobox.itemText(i)
-                combobox.model().item(i).setEnabled(action == "None" or action not in selected_actions or action == current_action)
+                combobox.model().item(i).setEnabled(
+                    action == "None" or
+                    action not in selected_actions or
+                    action == current_action
+                )
+
     def toggle_webcam(self):
         if self.timer.isActive():
             self.timer.stop()
