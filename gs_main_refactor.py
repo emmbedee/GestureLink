@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import (
     QStatusBar, QAction,
 )
 
+
 # Initialize MediaPipe solutions for hand tracking
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
