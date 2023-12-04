@@ -113,14 +113,31 @@ def perform_action(gesture):
 
 
 # Main application window
+def load_saved_gesture_settings():
+    loaded_settings = load_gesture_settings()
+    if loaded_settings is not None:
+        global gesture_action_map
+        gesture_action_map.update(loaded_settings)
+
+
 class GestureLinkApp(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.gesture_layout = None
+        self.gesture_frame = None
+        self.comboboxes = None
+        self.toggle_gesture_recognition_button = None
+        self.toggle_webcam_button = None
+        self.webcam_label = None
+        self.layout = None
+        self.statusBar = None
+        self.central_widget = None
+        self.gesture_recognition_active = None
         self.setWindowTitle("Gesture Link App")
         self.setGeometry(100, 100, 800, 600)
 
         # Load saved gesture settings
-        self.load_saved_gesture_settings()
+        load_saved_gesture_settings()
         self.setup_ui()
 
         # Initialize webcam and gesture recognition
@@ -128,12 +145,6 @@ class GestureLinkApp(QMainWindow):
         self.vid = cv2.VideoCapture(self.video_source)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
-
-    def load_saved_gesture_settings(self):
-        loaded_settings = load_gesture_settings()
-        if loaded_settings is not None:
-            global gesture_action_map
-            gesture_action_map.update(loaded_settings)
 
     def setup_ui(self):
         self.central_widget = QWidget()
