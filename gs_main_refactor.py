@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QSpacerItem,
     QSizePolicy,
-    QStatusBar,
+    QStatusBar, QAction,
 )
 
 # Initialize MediaPipe solutions for hand tracking
@@ -121,8 +121,97 @@ def load_saved_gesture_settings():
 
 
 class GestureLinkApp(QMainWindow):
+    LIGHT_STYLE = """
+    QWidget { 
+        font-family: 'Arial'; 
+        background-color: #f2f2f2;  /* Light grey background */
+        color: #333;  /* Dark grey text for contrast */
+    }
+
+    QLabel { 
+        color: #333; 
+        font-size: 14px; 
+    }
+
+    QPushButton { 
+        border-radius: 10px; 
+        background-color: #4CAF50;  /* Green background for buttons */
+        color: white; 
+        padding: 10px; 
+        font-size: 14px; 
+        margin: 10px 0; 
+        border: none; 
+    }
+
+    QPushButton:hover { 
+        background-color: #45a049;  /* Slightly darker green on hover */
+    }
+
+    QComboBox { 
+        border-radius: 5px; 
+        padding: 5px; 
+        margin: 5px 0; 
+        background-color: white; 
+        color: #333;  /* Dark grey text */
+        border: 1px solid #ccc;  /* Light grey border */
+        selection-background-color: #4CAF50;  /* Green selection background */
+    }
+
+    QStatusBar {
+        background-color: #e0e0e0;  /* Light grey for status bar */
+        color: #333;
+    }
+
+    /* Additional styles for other widgets (if any) */
+    """
+
+    DARK_STYLE = """
+    QWidget { 
+        font-family: 'Arial'; 
+        background-color: #121212;  /* Dark grey background */
+        color: #E0E0E0;  /* Light grey text for readability */
+    }
+
+    QLabel { 
+        color: #E0E0E0; 
+        font-size: 14px; 
+    }
+
+    QPushButton { 
+        border-radius: 10px; 
+        background-color: #333333;  /* Darker button background */
+        color: #E0E0E0; 
+        padding: 10px; 
+        font-size: 14px; 
+        margin: 10px 0; 
+        border: 1px solid #444444;  /* Slight border for button visibility */
+    }
+
+    QPushButton:hover { 
+        background-color: #454545;  /* Slightly lighter on hover for feedback */
+    }
+
+    QComboBox { 
+        border-radius: 5px; 
+        padding: 5px; 
+        margin: 5px 0; 
+        background-color: #333333; 
+        color: #E0E0E0; 
+        border: 1px solid #444444; 
+        selection-background-color: #555555; 
+    }
+
+    QStatusBar {
+        background-color: #222222;  /* Slightly different shade for status bar */
+        color: #E0E0E0;
+    }
+
+    /* Additional styles for other widgets (if any) */
+    """
+
     def __init__(self):
         super().__init__()
+        self.dark_mode_action = None
         self.gesture_layout = None
         self.gesture_frame = None
         self.comboboxes = None
@@ -145,6 +234,8 @@ class GestureLinkApp(QMainWindow):
         self.vid = cv2.VideoCapture(self.video_source)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_frame)
+
+        self.toggle_dark_mode()
 
     def setup_ui(self):
         self.central_widget = QWidget()
@@ -177,6 +268,13 @@ class GestureLinkApp(QMainWindow):
         # Status bar
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
+
+        # Toggle for Dark/Light Mode
+        self.dark_mode_button = QPushButton("Dark Mode", self)
+        self.dark_mode_button.setCheckable(True)
+        self.dark_mode_button.setChecked(False)  # Start in light mode
+        self.dark_mode_button.clicked.connect(self.toggle_dark_mode)
+        self.statusBar.addPermanentWidget(self.dark_mode_button)
 
     def setup_webcam_ui(self):
         self.layout = QVBoxLayout()
@@ -221,6 +319,14 @@ class GestureLinkApp(QMainWindow):
         button_layout.addWidget(self.toggle_gesture_recognition_button)
 
         self.layout.addLayout(button_layout)
+
+    def toggle_dark_mode(self):
+        if self.dark_mode_button.isChecked():
+            self.central_widget.setStyleSheet(self.DARK_STYLE)
+            self.dark_mode_button.setText("Light Mode")
+        else:
+            self.central_widget.setStyleSheet(self.LIGHT_STYLE)
+            self.dark_mode_button.setText("Dark Mode")
 
     def setup_gesture_mapping_ui(self):
         # Mapping of gestures to Unicode icons
