@@ -36,6 +36,8 @@ chime_sound = pygame.mixer.Sound("chime.wav")
 # Global variables for action timing
 last_action_time = 0
 action_interval = 1
+
+# Map of recognized gestures to corresponding actions
 gesture_action_map = {
     "closed_fist": None,
     "index_finger_up": None,
@@ -49,6 +51,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_FILE = os.path.join(BASE_DIR, 'gesture_settings.json')
 
 
+# Function to load gesture settings from a JSON file
 def load_gesture_settings():
     try:
         with open('gesture_settings.json', 'r') as file:
@@ -57,11 +60,13 @@ def load_gesture_settings():
         return None
 
 
+# Function to save gesture settings to a JSON file
 def save_gesture_settings():
     with open('gesture_settings.json', 'w') as file:
         json.dump(gesture_action_map, file)
 
 
+# Function to recognize gestures based on hand landmarks
 def gesture_recognized(hand_landmarks):
     thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.THUMB_TIP, mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.PINKY_TIP]]
     index_mcp, middle_mcp, ring_mcp, pinky_mcp = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.INDEX_FINGER_MCP, mp_hands.HandLandmark.MIDDLE_FINGER_MCP, mp_hands.HandLandmark.RING_FINGER_MCP, mp_hands.HandLandmark.PINKY_MCP]]
@@ -80,6 +85,7 @@ def gesture_recognized(hand_landmarks):
         return "index_pinky_up"
 
 
+# Function to perform actions based on recognized gestures
 def perform_action(gesture):
     global last_action_time
     if time.time() - last_action_time >= action_interval:
@@ -106,12 +112,14 @@ def perform_action(gesture):
         last_action_time = time.time()
 
 
+# Main application window
 class GestureLinkApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Gesture Link App")
         self.setGeometry(100, 100, 800, 600)
 
+        # Load saved gesture settings
         loaded_settings = load_gesture_settings()
         if loaded_settings is not None:
             global gesture_action_map
