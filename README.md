@@ -1,3 +1,23 @@
+Gesture Link Implementation Milestone Summary:
+
+Milestone 1: Initial research for technical solutions and framework functions were written out in Python.  The idea was to write a rough draft to begin the code structure and understand what individual functions/methods/classes need to exist. 
+
+Milestone 2: More paper prototyping for the GUI and some framework functions were expanded/filled out.  This was the first "working" bit of code, however it was not practically functional.  
+
+Milestone 3: A functional prototype was working with a basic GUI.  This is where the recognition functions all worked as initially proposed and only need to be fleshed out and polished.  
+
+Milestone 4: Working from Milestone 3 and utilizing user feedback, the app is now what I would confidently call a "minimum viable product."  Meaning, as it currently stands, this is a working application that can be easily deployed to most people's desktop computing systems.  User feedback was successfully and extensively integrated and the design of the GUI reflects these changes.  
+
+
+
+
+
+#########################################################################################################################################
+
+
+
+
+
 # GestureLink
 Title: 
 Gesture Link: Webcam-Driven Augmentation for HCI
