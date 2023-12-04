@@ -120,19 +120,25 @@ class GestureLinkApp(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
 
         # Load saved gesture settings
+        self.load_saved_gesture_settings()
+        self.setup_ui()
+
+        # Initialize webcam and gesture recognition
+        self.video_source = 0
+        self.vid = cv2.VideoCapture(self.video_source)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_frame)
+
+    def load_saved_gesture_settings(self):
         loaded_settings = load_gesture_settings()
         if loaded_settings is not None:
             global gesture_action_map
             gesture_action_map.update(loaded_settings)
 
+    def setup_ui(self):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        self.layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
-        self.central_widget.setLayout(self.layout)
-        self.gesture_recognition_active = False
 
-        # Set styles for the widgets
         self.central_widget.setStyleSheet("""
             QWidget { font-family: 'Arial'; background-color: #f2f2f2; }
             QLabel { color: #555; font-size: 14px; }
@@ -153,6 +159,19 @@ class GestureLinkApp(QMainWindow):
                 selection-background-color: #4CAF50;
             }
         """)
+
+        self.setup_webcam_ui()
+        self.setup_gesture_mapping_ui()
+
+        # Status bar
+        self.statusBar = QStatusBar()
+        self.setStatusBar(self.statusBar)
+
+    def setup_webcam_ui(self):
+        self.layout = QVBoxLayout()
+        button_layout = QHBoxLayout()
+        self.central_widget.setLayout(self.layout)
+        self.gesture_recognition_active = False
 
         # Webcam feed label
         self.webcam_label = QLabel("Press the start webcam button to activate.")
@@ -192,24 +211,7 @@ class GestureLinkApp(QMainWindow):
 
         self.layout.addLayout(button_layout)
 
-        # Gesture-action mapping UI
-        self.gesture_frame = QWidget()
-        self.gesture_layout = QGridLayout()
-        self.gesture_frame.setLayout(self.gesture_layout)
-        self.layout.addWidget(self.gesture_frame)
-        self.setup_gesture_ui()
-        self.update_comboboxes()
-
-        self.video_source = 0
-        self.vid = cv2.VideoCapture(self.video_source)
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_frame)
-
-        # Status bar
-        self.statusBar = QStatusBar()
-        self.setStatusBar(self.statusBar)
-
-    def setup_gesture_ui(self):
+    def setup_gesture_mapping_ui(self):
         gesture_labels = {
             "closed_fist": "Closed Fist",
             "index_finger_up": "Index Finger Up",
@@ -219,6 +221,10 @@ class GestureLinkApp(QMainWindow):
             "index_pinky_up": "Index and Pinky Up",
         }
         self.comboboxes = {}
+        self.gesture_frame = QWidget()
+        self.gesture_layout = QGridLayout()
+        self.gesture_frame.setLayout(self.gesture_layout)
+        self.layout.addWidget(self.gesture_frame)
         for i, (gesture_key, gesture_name) in enumerate(gesture_labels.items()):
             label = QLabel(gesture_name)
             self.gesture_layout.addWidget(label, i, 0)
