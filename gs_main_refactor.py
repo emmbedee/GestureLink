@@ -155,10 +155,25 @@ class GestureLinkApp(QMainWindow):
         """)
 
         # Webcam feed label
-        self.webcam_label = QLabel("Webcam feed")
+        self.webcam_label = QLabel("Press the start webcam button to activate.")
         self.webcam_label.setAlignment(Qt.AlignCenter)
-        self.webcam_label.setStyleSheet("border: 1px solid #ddd; padding: 10px;")
-        self.layout.addWidget(self.webcam_label)
+        self.webcam_label.setStyleSheet("""
+            QLabel {
+                border: 1px solid #ddd;
+                border-radius: 10px;  /* Rounded edges */
+                background-color: white; /* Background color */
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Drop shadow */
+                padding: 10px;
+            }
+        """)
+
+        # Set the initial size of the webcam feed (adjust width and height as needed)
+        initial_webcam_width = 640
+        initial_webcam_height = 480
+        self.webcam_label.setFixedSize(initial_webcam_width, initial_webcam_height)
+
+        # Center the webcam feed in the window
+        self.layout.addWidget(self.webcam_label, alignment=Qt.AlignCenter)
 
         # Toggle webcam button
         self.toggle_webcam_button = QPushButton("Start Webcam")
