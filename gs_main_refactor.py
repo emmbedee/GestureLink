@@ -223,19 +223,31 @@ class GestureLinkApp(QMainWindow):
         self.layout.addLayout(button_layout)
 
     def setup_gesture_mapping_ui(self):
-        gesture_labels = {
-            "closed_fist": "Closed Fist",
-            "index_finger_up": "Index Finger Up",
-            "index_middle_finger_up": "Index Middle Finger Up",
-            "index_middle_ring_finger_up": "Index Middle Ring Finger Up",
-            "index_middle_ring_pinky_finger_up": "Index Middle Ring Pinky Finger Up",
-            "index_pinky_up": "Index and Pinky Up",
+        # Mapping of gestures to Unicode icons
+        gesture_icons = {
+            "closed_fist": "✊",  # Unicode icon for Closed Fist
+            "index_finger_up": "☝",  # Unicode icon for Index Finger Up
+            "index_middle_finger_up": "🤘",  # Unicode icon for Index Middle Finger Up
+            "index_middle_ring_finger_up": "🖖",  # Unicode icon for Index Middle Ring Finger Up
+            "index_middle_ring_pinky_finger_up": "🖐",  # Unicode icon for Index Middle Ring Pinky Finger Up
+            "index_pinky_up": "🤞",  # Unicode icon for Index and Pinky Up
         }
+
+        gesture_labels = {
+            "closed_fist": f"Closed Fist {gesture_icons['closed_fist']}",
+            "index_finger_up": f"Index Finger Up {gesture_icons['index_finger_up']}",
+            "index_middle_finger_up": f"Index Middle Finger Up {gesture_icons['index_middle_finger_up']}",
+            "index_middle_ring_finger_up": f"Index Middle Ring Finger Up {gesture_icons['index_middle_ring_finger_up']}",
+            "index_middle_ring_pinky_finger_up": f"Index Middle Ring Pinky Finger Up {gesture_icons['index_middle_ring_pinky_finger_up']}",
+            "index_pinky_up": f"Index and Pinky Up {gesture_icons['index_pinky_up']}",
+        }
+
         self.comboboxes = {}
         self.gesture_frame = QWidget()
         self.gesture_layout = QGridLayout()
         self.gesture_frame.setLayout(self.gesture_layout)
         self.layout.addWidget(self.gesture_frame)
+
         for i, (gesture_key, gesture_name) in enumerate(gesture_labels.items()):
             label = QLabel(gesture_name)
             self.gesture_layout.addWidget(label, i, 0)
@@ -245,6 +257,7 @@ class GestureLinkApp(QMainWindow):
             combobox.currentIndexChanged.connect(lambda index, key=gesture_key, box=combobox: self.update_gesture_action_map(key, box))
             self.gesture_layout.addWidget(combobox, i, 1)
             self.comboboxes[gesture_key] = combobox
+
         self.update_comboboxes()
 
     def update_gesture_action_map(self, gesture, combobox):
