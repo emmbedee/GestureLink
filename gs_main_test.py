@@ -12,12 +12,12 @@ import time
 import pyautogui
 from PIL import Image, ImageTk
 
-# Initialize MediaPipe solutions for hand tracking
+
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
 
-# Global variables for action timing
+
 last_action_time = 0
 action_interval = 1
 options = ["None", "Volume Mute", "Show Desktop", "Maximize Windows", "Volume Up", "Volume Up x2", "Alt+Tab"]
@@ -31,7 +31,6 @@ gesture_action_map = {
 }
 
 def gesture_recognized(hand_landmarks):
-    # Gesture recognition logic here...
     thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip = [hand_landmarks.landmark[i] for i in [mp_hands.HandLandmark.THUMB_TIP, mp_hands.HandLandmark.INDEX_FINGER_TIP, mp_hands.HandLandmark.MIDDLE_FINGER_TIP, mp_hands.HandLandmark.RING_FINGER_TIP, mp_hands.HandLandmark.PINKY_TIP]]
     index_mcp = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP]
 
