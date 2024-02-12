@@ -60,15 +60,13 @@ class GestureLinkApp:
         self.window = window
         self.window.title(window_title)
 
-        # Style configuration for tabs to make them larger and centered
         style = ttk.Style()
         style.configure('Large.TNotebook.Tab', font=('Arial', '12'), padding=[20, 8])
 
-        # Change the color of the text of the selected tab to blue
         style.map('Large.TNotebook.Tab',
                   foreground=[('selected', 'blue')],
                   background=[
-                      ('selected', 'grey')])  # Optional: change the background color of the selected tab as well
+                      ('selected', 'grey')]) 
 
         # Create a tab control with the new style
         self.tabControl = ttk.Notebook(self.window, style='Large.TNotebook')
@@ -124,7 +122,6 @@ class GestureLinkApp:
         frame = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGB)
         results = hands.process(frame)
 
-        # Draw hand landmarks and check for gestures
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
@@ -132,7 +129,6 @@ class GestureLinkApp:
                     perform_action()
                     cv2.putText(frame, 'Gesture Recognized!', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-        # Convert frame to PhotoImage
         self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
         self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
