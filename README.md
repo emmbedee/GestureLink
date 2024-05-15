@@ -6,7 +6,7 @@ Milestone 2: More paper prototyping for the GUI and some framework functions wer
 
 Milestone 3: A functional prototype was working with a basic GUI.  This is where the recognition functions all worked as initially proposed and only need to be fleshed out and polished.  
 
-Milestone 4: Working from Milestone 3 and utilizing user feedback, the app is now what I would confidently call a "minimum viable product."  Meaning, as it currently stands, this is a working application that can be easily deployed to most people's desktop computing systems.  User feedback was successfully and extensively integrated and the design of the GUI reflects these changes.  
+Milestone 4: Working from Milestone 3 and utilizing user feedback, the app is now what I would confidently call it an "minimum viable product in alpha state."  Meaning, as it currently stands, this is a working application that can be deployed to most people's desktop computing systems, but it needs a lot of user testing and polish.  User feedback was successfully and extensively integrated and the design of the GUI reflects these changes.  
 
 
 
