@@ -1,3 +1,8 @@
+UPDATE 5/15/2024: This was a project I did for Human Computer Interaction at UNOmaha.  It was a very good learning experience, and I'm proud to keep this around as proof of my growth as a developer and commitment to a project. This is also a decent example of my code writing style. 
+
+#########################################################################################################################################
+
+
 Gesture Link Implementation Milestone Summary:
 
 Milestone 1: Initial research for technical solutions and framework functions were written out in Python.  The idea was to write a rough draft to begin the code structure and understand what individual functions/methods/classes need to exist. 
@@ -49,11 +54,3 @@ Proof of Concept specifications:
 •	Switch between applications: essentially an Alt-Tab alternative.
 •	Cursor movement/clicking.
 •	Gesture customization: pick which specific hand shapes do what. 
-
-4.	Team Organization:
-
-Documentation: Jadon Onstead, Ephraim Collins
-Implementation: Emm Doeden, Jadon Onstead
-Video:  Ephraim Collins, Emm Doeden
-
-Since this team is comparatively small, this gives us a big advantage to be able to be as agile as possible.  So, while the above description is accurate, we will be able to help each other with everything, and the above declarations are mostly a formality.  
