@@ -1,4 +1,4 @@
-UPDATE 5/15/2024: This was a project I did for Human Computer Interaction at UNOmaha.  It was a very good learning experience, and I'm proud to keep this around as proof of my growth as a developer and commitment to a project. This is also a decent example of my code writing style. 
+UPDATE 5/15/2024: This was a small project I did for Human Computer Interaction at UNOmaha.  It was a very good learning experience, and I'm proud to keep this around as proof of my growth as a developer and commitment to a project. This is also a decent example of my code writing style. 
 
 #########################################################################################################################################
 
